@@ -1,0 +1,31 @@
+Minecraft Backup
+------------------------------
+Utility to backup Minecraft worlds.  Requires python 3.2 <http://python.org>
+
+Usage
+------------------------------
+
+usage: python backup.py [-h] [-a FORMAT] [-f FORMAT] worldDir backupDir [worldName [worldName ...]]
+
+positional arguments:
+  worldDir              The path to the directory containing the worlds.
+  backupDir             The path to the directory where the backups will be
+                        written.
+  worldName             The worlds to backup. If no worlds are specified, all
+                        worlds in worldDir are backed up.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -a FORMAT, --archive-format FORMAT
+                        The archive format to use. Supported formats are zip,
+                        tar.gz, and tar.bz2. Default is tar.gz
+  -f FORMAT, --filename-format FORMAT
+                        The format of the backup world which may be a relative
+                        path to backupDir. {0} is the current time, {1} is the
+                        world name, and {2} is the archive format extension.
+                        Default is {0:%Y}-{0:%B}-{0:%d}/{1}-{0:%H%M%S}.{2}
+
+
+Filename Format
+------------------------------
+See http://docs.python.org/library/string.html#format-string-syntax for more information on the format string.

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 import argparse
-from mcbackup.backup import backup, ARCHIVERS
+from mcbackup.backup import backup
+from mcbackup.archiver import DEFINITIONS
 from mcbackup import policy
 
 def main():
@@ -10,8 +11,8 @@ def main():
     parser.add_argument('-a', '--archive-format',
                         dest='archive_format',
                         metavar='FORMAT',
-                        choices=ARCHIVERS.keys(),
-                        default='tar.gz',
+                        choices=DEFINITIONS.keys(),
+                        default='tar|gz',
                         help='The archive format to use.  Supported formats are zip, tar, tar.gz, and tar.bz2.  ' + \
                             'Default is tar.gz')
     parser.add_argument('-f', '--filename-format',

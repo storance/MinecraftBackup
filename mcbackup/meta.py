@@ -3,8 +3,12 @@ import datetime
 import importlib
 import uuid
 import re
+import os
 from dateutil.parser import parse
 from dateutil.tz import tzutc
+
+__all__ = ['TAG_SNAPSHOT', 'TAG_HOURLY', 'TAG_DAILY', 'TAG_WEEKLY', 'TAG_MONTHLY', 'TAG_YEARLY', 'BackupMeta',
+           'WorldMeta', 'load_meta', 'save_meta']
 
 TAG_SNAPSHOT = 'snapshot'
 TAG_HOURLY = 'hourly'
@@ -14,14 +18,15 @@ TAG_MONTHLY = 'monthly'
 TAG_YEARLY = 'yearly'
 
 class BackupMeta(object):
-    def __init__(self, backup_id=None, time=None, worlds=None, tag=TAG_SNAPSHOT):
+    def __init__(self, backup_id=None, time=None, archive_format=None, worlds=[], tag=TAG_SNAPSHOT):
         self.id = backup_id if backup_id else str(uuid.uuid4())
         self.time = time if time else datetime.datetime.now(tzutc())
+        self.archive_format = archive_format
         self.worlds = worlds if worlds else []
         self.tag = tag
 
     def retag(self, new_tag):
-        return BackupMeta(self.id, self.time, self.worlds, new_tag)
+        return BackupMeta(self.id, self.time, self.archive_format, self.worlds, new_tag)
 
     def __eq__(self, other):
         if isinstance(other, BackupMeta):
@@ -47,8 +52,22 @@ class WorldMeta(object):
 
         return False
 
-    def __repr__(self):
-        return "World{{name={},path={}}}".format(self.name, self.path)
+def load_meta(backup_dir):
+    meta_path = _get_meta_path(backup_dir)
+
+    if os.path.exists(meta_path):
+        with open(meta_path, 'r') as file:
+            return MetaDataJSONDecoder().decode(file.read())
+    else:
+        return []
+
+def save_meta(backup_dir, meta_data):
+    meta_path = _get_meta_path(backup_dir)
+    with open(meta_path, 'w') as file:
+        file.write(MetaDataJSONEncoder().encode(meta_data))
+
+def _get_meta_path(backup_dir):
+    return os.path.join(backup_dir, "meta.json")
 
 class MetaDataJSONEncoder(json.JSONEncoder):
     def default(self, obj):

@@ -151,14 +151,14 @@ def test_policy_apply():
                                 backups["yearly1"]])
 
 def create_backup(dictionary, backup_id, time, tag):
-    dictionary[backup_id] = meta.BackupMeta(backup_id, time, tag=tag)
+    dictionary[backup_id] = meta.BackupMeta(backup_id, time, archive_format='tar|gz', tag=tag)
 
 def compare_backups_list(actual, expected):
     eq_(sorted(actual, key=operator.attrgetter('time')),
         sorted(expected, key=operator.attrgetter('time')))
 
 def retag(backup, new_tag):
-    return meta.BackupMeta(backup.uuid, backup.time, backup.worlds, new_tag)
+    return backup.retag(new_tag)
 
 def _run_compare_ordinals(tagger1, tagger2, expect_higher):
     eq_(expect_higher, tagger1.is_higher_granularity(tagger2))

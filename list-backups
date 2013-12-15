@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+import argparse
+import operator
+from mcbackup import meta
+from dateutil.tz import tzlocal
+
+def main():
+    parser = argparse.ArgumentParser(description='Utility to list Minecraft world backups.')
+    
+    parser.add_argument('backup_dir',
+                        help="The path to the directory where the backups will be written.")
+    args = parser.parse_args()
+
+    meta_data = meta.load_meta(args.backup_dir)
+    backups_by_tag = group_backups_by_tag(meta_data)
+
+    print_by_tag(backups_by_tag, meta.TAG_SNAPSHOT)
+    print_by_tag(backups_by_tag, meta.TAG_HOURLY)
+    print_by_tag(backups_by_tag, meta.TAG_DAILY)
+    print_by_tag(backups_by_tag, meta.TAG_WEEKLY)
+    print_by_tag(backups_by_tag, meta.TAG_MONTHLY)
+    print_by_tag(backups_by_tag, meta.TAG_YEARLY)
+
+def print_by_tag(grouped_backups, tag):
+    if not grouped_backups[tag]:
+        return
+
+    print ("{}:".format(tag.capitalize()))
+    for i, backup in enumerate(grouped_backups[tag], 1):
+        print ("\t{}. id={}, time={:%Y-%m-%d %H:%M:%S}, format={}".format(i,
+                                                                         backup.id,
+                                                                         backup.time.astimezone(tzlocal()),
+                                                                         backup.archive_format))
+        for world in backup.worlds:
+            print("\t\t{}: {}".format(world.name, world.path))
+
+    print()
+
+def group_backups_by_tag(backups):
+    grouped_backups = {
+        meta.TAG_SNAPSHOT : [],
+        meta.TAG_HOURLY : [],
+        meta.TAG_DAILY : [],
+        meta.TAG_WEEKLY : [],
+        meta.TAG_MONTHLY : [],
+        meta.TAG_YEARLY : []
+    }
+
+    for backup in backups:
+        grouped_backups[backup.tag].append(backup)
+
+    for key in grouped_backups.keys():
+        grouped_backups[key].sort(key=operator.attrgetter("time"))
+
+    return grouped_backups
+
+if __name__ == '__main__':
+    main()

@@ -1,11 +1,8 @@
-'''
-Created on Jun 15, 2011
-
-@author: AgmMaverick
-'''
-
 import zipfile
 import tarfile
+from functools import partial
+
+__all__ = ['Archiver', 'ZipArchiver', 'TarArchiver', 'ArchiverDefinition', 'DEFINITIONS']
 
 class Archiver(object):
     def add(self, file, archive_name):
@@ -41,4 +38,25 @@ class TarArchiver(Archiver):
     def close(self):
         self.tar.close()
     
+
+class ArchiverDefinition(object):
+    def __init__(self, archive_format, archiver_class, default_ext):
+        self.format = archive_format
+        self.archiver_class = archiver_class
+        self.default_ext = default_ext
+
+
+    def open(self, output_file):
+        return self.archiver_class(output_file)
         
+DEFINITIONS = {}
+def _define_archive_format(archive_format, archiver_class, default_ext):
+    DEFINITIONS[archive_format] = ArchiverDefinition(archive_format, archiver_class, default_ext)
+
+_define_archive_format('zip',           partial(ZipArchiver, compression=zipfile.ZIP_DEFLATED), 'zip')
+_define_archive_format('zip|deflate',   partial(ZipArchiver, compression=zipfile.ZIP_DEFLATED), 'zip')
+_define_archive_format('zip|bz2',       partial(ZipArchiver, compression=zipfile.ZIP_BZIP2),    'zip')
+_define_archive_format('tar',           partial(TarArchiver, compression=''),                   'tar')
+_define_archive_format('tar|gz',        partial(TarArchiver, compression='gz'),                 'tar.gz')
+_define_archive_format('tar|bz2',       partial(TarArchiver, compression='bz2'),                'tar.bz2')
+_define_archive_format('tar|xz',        partial(TarArchiver, compression='xz'),                 'tar.xz')

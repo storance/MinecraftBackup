@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+
+import argparse
+from mcbackup.backup import backup, ARCHIVERS
+from mcbackup import policy
+
+def main():
+    parser = argparse.ArgumentParser(description='Utility to backup Minecraft worlds.')
+    
+    parser.add_argument('-a', '--archive-format',
+                        dest='archive_format',
+                        metavar='FORMAT',
+                        choices=ARCHIVERS.keys(),
+                        default='tar.gz',
+                        help='The archive format to use.  Supported formats are zip, tar, tar.gz, and tar.bz2.  ' + \
+                            'Default is tar.gz')
+    parser.add_argument('-f', '--filename-format',
+                        dest='filename_format',
+                        metavar='FORMAT',
+                        default="{now:%Y}{now:%m}{now:%d}/{world}-{now:%H%M%S}.{ext}",
+                        help='The format of the backup world which may be a relative path to backup_dir.  ' + \
+                            '{now:%Y}{now:%m}{now:%d}/{world}-{now:%H%M%S}.{ext}')
+    parser.add_argument('-r', '--retention-policy',
+                        dest='policy',
+                        default=["keep 7 days", "latest weekly keep 1 month", "latest monthly keep 6 months"],
+                        nargs="*",
+                        help="Configures the retention policy")
+    parser.add_argument('world_dir',
+                        help="The path to the directory containing the worlds.")
+    parser.add_argument('backup_dir',
+                        help="The path to the directory where the backups will be written.")
+    parser.add_argument('worlds',
+                        metavar='world_name',
+                        default=[],
+                        nargs='*',
+                        help="The worlds to backup.  If no worlds are specified, " +\
+                             "all worlds in world_dir are backed up.")
+    args = parser.parse_args()
+
+    retention_policy = policy.parser.parse(args.policy)
+    backup(args.world_dir, args.worlds, args.backup_dir, args.filename_format, args.archive_format, retention_policy)
+
+if __name__ == '__main__':
+    main()
